@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <curl/curl.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 

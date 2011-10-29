@@ -175,7 +175,7 @@ int cdmi_get( cdmi_request_t *request, const char *path )
 	 */
 	if( request->cdmi || strcmp( request->contenttype, mime[M_JSON] ) == 0 )
 	{
-		request->root = json_loads( request->rawdata, &(request->json_error) );
+		request->root = json_loads( request->rawdata, 0, &(request->json_error) );
 		if( request->root == NULL )
 		{
 			DEBUGV( "error: json error on line %d: %s\n",
