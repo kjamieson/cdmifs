@@ -103,8 +103,12 @@ static int parse_metadata( json_t *metadata, struct stat *stbuf )
 	if( !json_is_object( metadata ) )
 		return -1;
 
-	if( json_is_integer( json_object_get(metadata, "cdmi_size") ) )
-		stbuf->st_size = json_integer_value( json_object_get(metadata, "cdmi_size") );
+	if( json_is_string( json_object_get(metadata, "cdmi_size") ) )
+  {
+		stbuf->st_size = atoll(
+        json_string_value( json_object_get(metadata, "cdmi_size") )
+      );
+  }
 
 	if( json_is_string( json_object_get(metadata, "cdmi_ctime") ) )
 	{

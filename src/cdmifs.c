@@ -190,6 +190,12 @@ static int cdmifs_opt_proc( void *data, const char *arg, int key, struct fuse_ar
 	}
 }
 
+static int cdmifs_capability_is_true( const json_t *capa )
+{
+  return json_is_string(capa) &&
+         !strcmp( json_string_value(capa), "true" );
+}
+
 static void cdmifs_capabilities()
 {
 	json_t *capa;
@@ -201,7 +207,7 @@ static void cdmifs_capabilities()
 		fprintf( stderr, "error: unable to fetch capabilities: %s\n", strerror(errno) );
 		exit(1);
 	}
-	if( !json_is_true( json_object_get(capa, "cdmi_size") ) )
+	if( !cdmifs_capability_is_true( json_object_get(capa, "cdmi_size") ) )
 	{
 		fprintf( stderr, "error: server doesn't support: cdmi_size\n" );
 		exit(1);
@@ -214,17 +220,17 @@ static void cdmifs_capabilities()
 		fprintf( stderr, "error: unable to fetch capabilities: %s\n", strerror(errno) );
 		exit(1);
 	}
-	if( !json_is_true( json_object_get(capa, "cdmi_list_children") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_list_children_range") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_create_container") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_delete_container") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_read_metadata") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_move_container") ) )
+	if( !cdmifs_capability_is_true( json_object_get(capa, "cdmi_list_children") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_list_children_range") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_create_container") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_delete_container") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_read_metadata") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_move_container") ) )
 	{
 		fprintf( stderr, "error: server doesn't fully support: containers\n" );
 		exit(1);
 	}
-	if( !json_is_true( json_object_get(capa, "cdmi_modify_metadata") ) )
+	if( !cdmifs_capability_is_true( json_object_get(capa, "cdmi_modify_metadata") ) )
 	{
 		options.gotmeta = 0;
 	}
@@ -237,17 +243,17 @@ static void cdmifs_capabilities()
 		fprintf( stderr, "error: unable to fetch capabilities: %s\n", strerror(errno) );
 		exit(1);
 	}
-	if( !json_is_true( json_object_get(capa, "cdmi_read_value") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_read_value_range") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_modify_value") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_modify_value_range") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_read_metadata") ) ||
-		!json_is_true( json_object_get(capa, "cdmi_delete_dataobject") ) )
+	if( !cdmifs_capability_is_true( json_object_get(capa, "cdmi_read_value") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_read_value_range") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_modify_value") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_modify_value_range") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_read_metadata") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_delete_dataobject") ) )
 	{
 		fprintf( stderr, "error: server doesn't fully support: dataobject\n" );
 		exit(1);
 	}
-	if( !json_is_true( json_object_get(capa, "cdmi_modify_metadata") ) )
+	if( !cdmifs_capability_is_true( json_object_get(capa, "cdmi_modify_metadata") ) )
 	{
 		options.gotmeta = 0;
 	}
