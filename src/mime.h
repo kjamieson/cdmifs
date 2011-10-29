@@ -12,11 +12,11 @@
 #define M_CAPABILITIES 4
 
 static char *mime[] = {
-	"text/json",
-	"application/vnd.org.snia.cdmi.object+json",
-	"application/vnd.org.snia.cdmi.dataobject+json",
-	"application/vnd.org.snia.cdmi.container+json",
-	"application/vnd.org.snia.cdmi.capabilities+json",
+	"application/json",
+  "application/cdmi-capability,application/cdmi-container,application/cdmi-domain,application/cdmi-object,application/cdmi-queue",
+  "application/cdmi-object",
+  "application/cdmi-container",
+  "application/cdmi-capability",
 	NULL
 };
 
