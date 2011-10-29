@@ -1,6 +1,6 @@
 bin_PROGRAMS = cdmifs
 
-AM_CFLAGS = -Wall -Wextra -D_GNU_SOURCE $(CURL_CFLAGS) $(FUSE_CFLAGS) $(JANSSON_CFLAGS)
+AM_CFLAGS = -Wall -Wextra -Werror -D_GNU_SOURCE $(CURL_CFLAGS) $(FUSE_CFLAGS) $(JANSSON_CFLAGS)
 
 cdmifs_SOURCES = \
 		cdmifs.c \
