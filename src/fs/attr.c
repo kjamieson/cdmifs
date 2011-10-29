@@ -147,7 +147,9 @@ int cdmifs_chmod( const char *path, mode_t mode )
 	int ret;
 	char modestr[16];
 	sprintf( modestr, "0%o", mode );
-	json_t *meta = json_object();
+	json_t *meta = getmetadata( path );
+	if( path == NULL )
+		return errno;
 	json_object_set( meta, "cdmifs_mode", json_string(modestr) );
 	ret = setmetadata( path, meta );
 	json_decref( meta );
