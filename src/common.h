@@ -45,7 +45,7 @@ extern struct options options;
 
 #define DEFAULT_PORT "2364"
 
-#define CDMI_SPEC_VERSION "1.0"
+#define CDMI_SPEC_VERSION "1.0.1"
 
 #define URLSIZE 512
 
