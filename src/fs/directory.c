@@ -98,6 +98,7 @@ int cdmifs_rmdir( const char *path )
 	memset( &request, 0, sizeof( cdmi_request_t ) );
 	request.type = DELETE;
 	request.cdmi = 0;
+	request.flags = CDMI_CONTAINER;
 	ret = cdmi_delete( &request, path );
 	if( ret == -1 )
 		return errno == 0 ? -EIO : -errno;

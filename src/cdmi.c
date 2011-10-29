@@ -47,7 +47,6 @@ int cdmi_get( cdmi_request_t *request, const char *path )
 				headers,
 				"X-CDMI-Specification-Version: %s", CDMI_SPEC_VERSION );
 		headers = slist_append( headers, "Accept: %s", mime[M_OBJECT] );
-		headers = slist_append( headers, "Content-Type: %s", mime[M_OBJECT] );
 	}
 
 
@@ -85,7 +84,6 @@ int cdmi_get( cdmi_request_t *request, const char *path )
 		cdmitype = 0;
 	}
 
-
 	if( request->cdmi == 0 && request->length > 0 )
 	{
 		noncdmi_headers= slist_replace(
@@ -104,9 +102,9 @@ int cdmi_get( cdmi_request_t *request, const char *path )
 	 * to it.
 	 */
 	if( ISSET(flags, CDMI_NORESOLVE) )
-		url = path2unresolved( path );
+		url = path2unresolved( path, flags );
 	else
-		url = path2url( path );
+		url = path2url( path, flags );
 
 	urlsize = strlen( url ) + 1;
 	if( request->fields != NULL )
@@ -150,7 +148,17 @@ int cdmi_get( cdmi_request_t *request, const char *path )
 
 	code = response_code2errno( code );
 	if( code != SUCCESS )
+  {
+		if( cdmitype == 0 && code == EPROTO )
+		{
+			/* Trailing slashes in paths are significant in CDMI,
+			 * so try retrieving as a container instead.
+			 */
+			request->flags |= CDMI_CONTAINER;
+			return cdmi_get(request, path);
+		}
 		return rerrno( code );
+  }
 
 	res = curl_easy_getinfo( curl, CURLINFO_CONTENT_TYPE, &(request->contenttype) );
 	if( res != CURLE_OK || request->contenttype == NULL )
@@ -293,14 +301,14 @@ int cdmi_put( cdmi_request_t *request, const char *path )
 	{
 		if( !request->cdmi )
 		{
-			noncdmi_headers = slist_replace( noncdmi_headers, "Content-Type:" );
+			noncdmi_headers = slist_replace( noncdmi_headers, "Content-Type" );
 		}
 		else
 		{
 			if( request->type == MOVE )
 			{
 				json_t *root = json_object();
-				json_object_set( root, "move", json_string( path2path(request->src) ) );
+				json_object_set( root, "move", json_string( path2path(request->src, flags) ) );
 				data = json_dumps( root, JSON_INDENT(1) );
 				json_decref( root );
 				data = realloc( data, strlen(data)+2 );
@@ -359,7 +367,7 @@ int cdmi_put( cdmi_request_t *request, const char *path )
 			if( request->type == MOVE )
 			{
 				json_t *root = json_object();
-				json_object_set( root, "move", json_string( path2path(request->src) ) );
+				json_object_set( root, "move", json_string( path2path(request->src, flags) ) );
 				data = json_dumps( root, JSON_INDENT(1) );
 				json_decref( root );
 				data = realloc( data, strlen(data)+2 );
@@ -378,8 +386,8 @@ int cdmi_put( cdmi_request_t *request, const char *path )
 		}
 	}
 
-	DEBUGV( "info: cdmi_put %s\n", path2url( path ) );
-	curl_easy_setopt( curl, CURLOPT_URL, path2url( path ) );
+	DEBUGV( "info: cdmi_put %s\n", path2url( path, flags ) );
+	curl_easy_setopt( curl, CURLOPT_URL, path2url( path, flags ) );
 
 	res = upload( curl, data ? data : request->rawdata, data ? strlen(data) : request->length );
 	if( data )
@@ -424,8 +432,8 @@ int cdmi_delete( cdmi_request_t *request, const char *path )
 	CURLcode res;
 	long code;
 
-	DEBUGV( "info: cdmi_delete %s\n", path2url( path ) );
-	curl_easy_setopt( curl, CURLOPT_URL, path2url( path ) );
+	DEBUGV( "info: cdmi_delete %s\n", path2url( path, request->flags ) );
+	curl_easy_setopt( curl, CURLOPT_URL, path2url( path, request->flags ) );
 
 	curl_easy_setopt( curl, CURLOPT_NOBODY, 1L );
 	curl_easy_setopt( curl, CURLOPT_CUSTOMREQUEST, "DELETE" );
@@ -527,33 +535,42 @@ int setmetadata( const char *path, json_t *metadata )
 	return ret;
 }
 
-char *path2url( const char *path )
+char path2last( const char *path, uint32_t flags )
+{
+	/* CDMI requires trailing slash in container URIs */
+	if( ( ISSET(flags, CDMI_CAPABILITIES) || ISSET(flags, CDMI_CONTAINER) ) &&
+		path[0] != 0 && path[strlen(path)-1] != '/' )
+		return '/';
+	return 0;
+}
+
+char *path2url( const char *path, uint32_t flags )
 {
 	static char url[URLSIZE+1];
 	if( path[0] == '/' )
 		path++;
-	snprintf( url, URLSIZE, "%s://%s:%s%s/%s",
+	snprintf( url, URLSIZE, "%s://%s:%s%s%s%c",
 			options.ssl?"https":"http",
 			options.host, options.port,
-			options.root, path
+			options.root, path, path2last(path, flags)
 		);
 	return url;
 }
 
-char *path2unresolved( const char *path )
+char *path2unresolved( const char *path, uint32_t flags )
 {
 	static char url[URLSIZE+1];
 	if( path[0] == '/' )
 		path++;
-	snprintf( url, URLSIZE, "%s://%s:%s/%s",
+	snprintf( url, URLSIZE, "%s://%s:%s/%s%c",
 			options.ssl?"https":"http",
 			options.host, options.port,
-			path
+			path, path2last( path, flags )
 		);
 	return url;
 }
 
-char *path2path( const char *path )
+char *path2path( const char *path, uint32_t flags )
 {
 	static char url[URLSIZE+1];
 	if( startswith( path, options.root ) )
@@ -561,8 +578,8 @@ char *path2path( const char *path )
 	if( path[0] == '/' )
 		path++;
 	url[0] = 0;
-	snprintf( url, URLSIZE, "%s/%s",
-			options.root, path );
+	snprintf( url, URLSIZE, "%s%s%c",
+			options.root, path, path2last( path, flags ) );
 	return url;
 
 }

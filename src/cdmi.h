@@ -66,9 +66,9 @@ extern json_t *getcapabilities( const char *path );
 extern json_t *getmetadata( const char *path );
 extern int setmetadata( const char *path, json_t *metadata );
 
-extern char *path2url( const char *path );
-extern char *path2unresolved( const char *path );
-extern char *path2path( const char *path );
+extern char *path2url( const char *path, uint32_t flags );
+extern char *path2unresolved( const char *path, uint32_t flags );
+extern char *path2path( const char *path, uint32_t flags );
 extern int response_code2errno( long response_code );
 extern objectid_t objectid_decode( const char *b64data );
 
