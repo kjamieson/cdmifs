@@ -207,11 +207,6 @@ static void cdmifs_capabilities()
 		fprintf( stderr, "error: unable to fetch capabilities: %s\n", strerror(errno) );
 		exit(1);
 	}
-	if( !cdmifs_capability_is_true( json_object_get(capa, "cdmi_size") ) )
-	{
-		fprintf( stderr, "error: server doesn't support: cdmi_size\n" );
-		exit(1);
-	}
 	json_decref(capa);
 
 	capa = getcapabilities("/container/");
@@ -248,7 +243,8 @@ static void cdmifs_capabilities()
 		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_modify_value") ) ||
 		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_modify_value_range") ) ||
 		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_read_metadata") ) ||
-		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_delete_dataobject") ) )
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_delete_dataobject") ) ||
+		!cdmifs_capability_is_true( json_object_get(capa, "cdmi_size") ) )
 	{
 		fprintf( stderr, "error: server doesn't fully support: dataobject\n" );
 		exit(1);
