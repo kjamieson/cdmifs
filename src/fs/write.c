@@ -39,6 +39,7 @@ int cdmifs_write(
 	request.rawdata = data;
 	request.length = size;
 	request.offset = offset;
+	request.contenttype = MAGIC_DEFAULT;
 	request.flags = CDMI_DATAOBJECT;
 	ret = cdmi_put( &request, path );
 	cdmi_free( &request );
@@ -58,6 +59,7 @@ int cdmifs_truncate( const char *path, off_t offset )
 	request.rawdata = NULL;
 	request.length = 0;
 	request.offset = offset;
+	request.contenttype = MAGIC_DEFAULT;
 	request.flags = CDMI_DATAOBJECT;
 	ret = cdmi_put( &request, path );
 
