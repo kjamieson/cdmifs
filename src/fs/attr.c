@@ -67,7 +67,7 @@ int cdmifs_getattr(
 		request.type = GET;
 		request.cdmi = 1;
 		request.fields = (char*[]){"children",NULL};
-		request.flags = CDMI_SINGLE;
+		request.flags = CDMI_CONTAINER | CDMI_SINGLE;
 		ret = cdmi_get( &request, path );
 		if( ret == -1 )
 			return errno == 0 ? -EIO : -errno;
